@@ -9,6 +9,10 @@ sudo apt-get update
 sudo apt-get install pigpio python-pigpio python3-pigpio
 ```
 
+If the Python install fails it may be because you need the setup tools.
+
+`sudo apt install python-setuptools python3-setuptools`
+
 ### PIGPIO Installation
 
 To install the PIGPIO library, download the zip file with `wget abyz.me.uk/rpi/pigpio/pigpio.zip`.
