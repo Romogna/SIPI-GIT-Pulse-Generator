@@ -39,6 +39,8 @@ sudo make install
 ```
 ### Running Generator
 
+Make sure to run the python scripts with the `python` command and not `python3`.
+
 After installing PIGPIO Library, change the run.sh file to be executable.
 
 `chmod +x run.sh`
