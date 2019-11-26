@@ -46,3 +46,13 @@ After installing PIGPIO Library, change the run.sh file to be executable.
 `chmod +x run.sh`
 
 Run the program by using `./run.sh`
+
+Notes:
+```
+sudo apt-get update
+sudo apt-get install python-pip python-dev ipython
+
+sudo apt-get install bluetooth libbluetooth-dev
+sudo pip install pybluez
+
+```
