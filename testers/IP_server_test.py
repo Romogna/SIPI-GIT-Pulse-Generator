@@ -37,7 +37,19 @@ while True:
    # send a thank you message to the client.  
    c.send('Thank you for connecting')
 
+   # Notes: Will do the task after receiving message
+   data = c.recv(1024)
+   print('Receiving: {}, {}'.format(data,type(data)))
+   data = data.split(',')
+   print(data)
+
+   for i in data:
+     param[i] = int(data[i])
+     print(param, type(param[i]))
+
+
    # Close the connection with the client 
    c.close()
-###
+
+###------
 
