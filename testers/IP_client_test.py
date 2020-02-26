@@ -1,5 +1,6 @@
 # This is the client test for the IP protocol
-# The final code will be write in pylon, this is a testing code
+# The final code will be write in pylon.
+# Run in python, not python3
 
 # Import socket module 
 import socket
