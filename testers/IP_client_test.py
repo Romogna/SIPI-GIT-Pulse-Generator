@@ -15,7 +15,7 @@ s.connect(('192.168.0.81', port)) # remember to change
 #192.168.0.81 - pulsegenerator
 
 # receive data from the server 
-print s.recv(1024)
+print (s.recv(1024))
 # Notes: client would send message to be parsed in testing
 s.send('1,2,3,4,5')
 
