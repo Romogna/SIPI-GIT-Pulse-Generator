@@ -19,13 +19,10 @@ def wave_creation(data):
   #interval_param = input("Enter in the interval between exposures: ")
   interval_param = int(wave_param[2])
   #sequence_param = input ("Will the sequence of exposures be (geometric or arithmetic)? \n")
-  sequence_param = int(wave_param[3]) # 0 is geometric, 1 is arithmetic
+  sequence_param = int(wave_param[3]) # 1 is geometric, 0 is arithmetic
   #sequence_steps = input ("What is the common difference/ratio? \n")
   sequence_steps = int(wave_param[4])
 
-  # initializing
-  exposure_time.clear()
-  square.clear()
   compile = 1
 
   # loop to populate the exposure time list
@@ -40,10 +37,11 @@ def wave_creation(data):
 
     compile = compile + 1 # increment until we have enough exposures
 
-  for i in irange(0, image_count): # populates the square wave with parameters
+  for i in range(0, image_count-1): # populates the square wave with parameters
   # pulses                     ON       OFF      MICROS
     square.append(pigpio.pulse(1<<GPIO, 0,       exposure_time[i])) # varying exposures
-    square.append(pigpio.pusle(0,       1<<GPIO, interval_param)) # interval between exposures
+    square.append(pigpio.pulse(0,       1<<GPIO, interval_param)) # interval between exposures
+
 
   pi = pigpio.pi() # connect to local Pi
   pi.set_mode(GPIO, pigpio.OUTPUT) # turns GPIO pin to output
@@ -53,11 +51,13 @@ def wave_creation(data):
   if wid >= 0:
      pi.wave_send_once(wid) # generates the wave pulse
      print ('Producing wave now!')
-     print (square)
-
+     print (exposure_time)
      time.sleep(10)          # used to pause time before stopping
      pi.wave_tx_stop()        # used to stop the pulse
      pi.wave_delete(wid)       # used to delete the current waveform
+     print ('Cleaning Lists')
+     del exposure_time[:]
+     del square[:]
 
   pi.stop()  # stops the local pi connection
 
@@ -98,12 +98,12 @@ if __name__ == "__main__":
 
     # Notes: Will do the task after receiving message
     data = c.recv(1024)
-    print('Receiving: {}, {}'.format(data,type(data)))
+    print ('Receiving: {}, {}'.format(data,type(data)))
 
-    wave_param.clear() # clearing the list
-    wave_generation(data)
+    wave_creation(data)
 
     # Close the connection with the client
+    print ('Closing Connection')
     c.close()
 
 ###------End of main()----------
