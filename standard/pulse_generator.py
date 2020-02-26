@@ -32,8 +32,11 @@ def wave_creation(data):
   while (compile < image_count):
     if sequence_param == 0: # will add sequence exposures to list arithmetic
       exposure_time.append(initial_exposure + (sequence_steps*compile))
-    else if sequence_param == 1:  # will add sequence exposures to list geometric
+    elif sequence_param == 1:  # will add sequence exposures to list geometric
       exposure_time.append(initial_exposure * (sequence_steps**compile))
+    else:
+      print ('Invalid option! Please try again.')
+      exit()
 
     compile = compile + 1 # increment until we have enough exposures
 
@@ -49,8 +52,8 @@ def wave_creation(data):
 
   if wid >= 0:
      pi.wave_send_once(wid) # generates the wave pulse
-     print('Producing wave now!')
-     print(square)
+     print ('Producing wave now!')
+     print (square)
 
      time.sleep(10)          # used to pause time before stopping
      pi.wave_tx_stop()        # used to stop the pulse
@@ -64,7 +67,7 @@ if __name__ == "__main__":
 
   # next create a socket object
   s = socket.socket()
-  print "Socket successfully created"
+  print ('Socket successfully created')
 
   # reserve a port on your computer in our
   # case it is 12345 but it can be anything
@@ -76,11 +79,11 @@ if __name__ == "__main__":
   # this makes the server listen to requests
   # coming from other computers on the network
   s.bind(('', port))
-  print "socket binded to %s" %(port)
+  print ('socket binded to {}'.format(port))
 
   # put the socket into listening mode
   s.listen(5)
-  print "socket is listening"
+  print ('socket is listening')
 
   # a forever loop until we interrupt it or
   # an error occurs
@@ -88,7 +91,7 @@ if __name__ == "__main__":
 
     # Establish connection with client.
     c, addr = s.accept()
-    print 'Got connection from', addr
+    print ('Got connection from {}'.format(addr))
 
     # send a thank you message to the client.
     c.send('Thank you for connecting')
