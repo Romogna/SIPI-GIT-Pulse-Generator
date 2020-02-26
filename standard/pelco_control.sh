@@ -20,3 +20,7 @@ echo "Pelco 'D': $SYNC $ADDR $BYTE3 $BYTE4 $BYTE5 $BYTE6 $SUM"
 
 # Write to port
 printf "\x$SYNC\x$ADDR\x$BYTE3\x$BYTE4\x$BYTE5\x$BYTE6\x$SUM" > "$PORT"
+
+#To use:
+# run the script followed by four (two digit hexadeicmal)
+# ./pelco_control.sh 00 02 3F 00
