@@ -30,7 +30,8 @@ def wave_creation(data):
     if sequence_param == 0: # will add sequence exposures to list arithmetic
       exposure_time.append(initial_exposure + (sequence_steps*compile))
     elif sequence_param == 1:  # will add sequence exposures to list geometric
-      exposure_time.append(initial_exposure * (sequence_steps**compile))
+      exposure_time.append(initial_exposure * (sequence_steps**compile)) 
+      # geometric is not functioning
     else:
       print ('Invalid option! Please try again.')
       exit()
@@ -52,11 +53,14 @@ def wave_creation(data):
      pi.wave_send_once(wid) # generates the wave pulse
      print ('Producing wave now!')
      print (exposure_time)
+
+     c.send('Wave produced') # send the client the wave parameters
      time.sleep(10)          # used to pause time before stopping
      pi.wave_tx_stop()        # used to stop the pulse
      pi.wave_delete(wid)       # used to delete the current waveform
+
      print ('Cleaning Lists')
-     del exposure_time[:]
+     del exposure_time[:]    # clears the lists for the next signal
      del square[:]
 
   pi.stop()  # stops the local pi connection
@@ -100,7 +104,7 @@ if __name__ == "__main__":
     data = c.recv(1024)
     print ('Receiving: {}, {}'.format(data,type(data)))
 
-    wave_creation(data)
+    wave_creation(data) # has to be the correct format
 
     # Close the connection with the client
     print ('Closing Connection')
