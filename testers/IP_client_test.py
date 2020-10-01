@@ -20,13 +20,18 @@ s.connect(('pulsegenerator.local', port)) # remember to change
 print (s.recv(1024))
 
 # Notes: client would send message to be parsed in testing
-s.send('CT,PR,63')
-sleep(2)
+selection = input('Please select an option:\n 1 - Pan Right \n 2 - Pan Left \n 3 - STOP\n')
 
-s.send('CT,PL,63')
-sleep(2)
+if selection == 1:
+    s.send('CT,PR,63')
+    sleep(1)
 
-s.send('CT,STOP,0')
+elif selection == 2:
+    s.send('CT,PL,63')
+    sleep(1)
+
+elif selection == 3:
+    s.send('CT,STOP,0')
 
 # close the connection
 s.close()
