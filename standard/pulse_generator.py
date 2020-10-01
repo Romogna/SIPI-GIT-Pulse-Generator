@@ -1,27 +1,88 @@
 #!/usr/bin/env python
 import socket
 import time
+import serial
 import pigpio
+
+data = [] # holds parsed information
 
 GPIO=4 # pin selected for pwg
 exposure_time = [] # stores a list of exposure times
 wave_param = [] # holds data from the message
 square = []  # list to store the waveform parameters
 
-def wave_creation(data):
+# configure the serial connections (the parameters differs on the device you are connecting to)
+ser = serial.Serial(
+        port='/dev/ttyUSB0',
+        baudrate=9600
+#       parity=serial.PARITY_ODD,
+#       stopbits=serial.STOPBITS_TWO,
+#       bytesize=serial.SEVENBITS
+)
 
-  wave_param = data.split(',')
+def pelcod(camera_options, camera_speed): # using decimal instead of hex
+# sync  =           255
+# addr  = camera     01
+# byte3 = command1   00
+# byte4 = command2   02,04, 08,16
+# byte5 = pan_speed  63
+# byte6 = tilt_speed 63
+# checksum = calculated
+
+    sync = 255
+    camera = 01
+    command1 = 0
+    pan_speed = 0
+    tilt_speed = 0
+
+    if camera_options == 'PR':
+      pan_speed = camera_speed
+      command2 = 2
+
+    elif camera_options == 'PL':
+      pan_speed = camera_speed
+      command2 = 4
+
+    elif camera_options == 'TU':
+      tilt_speed = camera_speed
+      command2 = 8
+
+    elif camera_options == 'TD':
+      tilt_speed = camera_speed
+      command2 = 16
+
+    if camera_options == 'STOP':
+      pan_speed = 0
+      tilt_speed = 0
+      command2 = 0
+
+    checksum = (camera + command1 + command2 + pan_speed + tilt_speed) % 256
+
+    #print ('Command Sent: {},{},{},{},{},{},{}'.format(sync ,camera, command1, command2, pan_speed, tilt_speed, checksum$
+    #return [camera, command1, command2, pan_speed, tilt_speed, checksum]
+
+    command = [sync, camera, command1, command2, pan_speed, tilt_speed, checksum]
+
+    #print (bytearray(command))
+
+    ser.write(command)
+
+#----------------end of pelcod-----------------#
+
+def wave_creation(image_count, initial_exposure, interval_param, sequence_param, sequence_steps):
+
+  #wave_param = data.split(',')
 
   #image_count = input("How many exposures will you be taking? \n")
-  image_count = int(wave_param[0])
+  #image_count = int(wave_param[0])
   #intial_exposure = input("Enter in the intial exposure time: ")
-  initial_exposure = int(wave_param[1])
+  #initial_exposure = int(wave_param[1])
   #interval_param = input("Enter in the interval between exposures: ")
-  interval_param = int(wave_param[2])
+  #interval_param = int(wave_param[2])
   #sequence_param = input ("Will the sequence of exposures be (geometric or arithmetic)? \n")
-  sequence_param = int(wave_param[3]) # 1 is geometric, 0 is arithmetic
+  #sequence_param = int(wave_param[3]) # 1 is geometric, 0 is arithmetic
   #sequence_steps = input ("What is the common difference/ratio? \n")
-  sequence_steps = int(wave_param[4])
+  #sequence_steps = int(wave_param[4])
 
   compile = 1
 
@@ -30,8 +91,7 @@ def wave_creation(data):
     if sequence_param == 0: # will add sequence exposures to list arithmetic
       exposure_time.append(initial_exposure + (sequence_steps*compile))
     elif sequence_param == 1:  # will add sequence exposures to list geometric
-      exposure_time.append(initial_exposure * (sequence_steps**compile)) 
-      # geometric is not functioning
+      exposure_time.append(initial_exposure * (sequence_steps**compile)) # <-needs adjustments and testing
     else:
       print ('Invalid option! Please try again.')
       exit()
@@ -104,12 +164,32 @@ if __name__ == "__main__":
     data = c.recv(1024)
     print ('Receiving: {}, {}'.format(data,type(data)))
 
-    wave_creation(data) # has to be the correct format
+    data = package.split(',')
+
+    if data[0] == 'CT':
+      pelcod(data[1],int(data[2]))
+      if data[1] == 'STOP':
+        print ('Closing Connection')
+        c.close()
+
+    elif data[0] == 'PG':
+      wave_creation(data[1],data[2],data[3],data[4],data[5])
+      print ('Closing Connection')
+      c.close()
+
+    else:
+      c.send('Invalid data parameters!')
+      print ('invalid data')
+      c.close()
+#------------------------------------------------------
 
     # Close the connection with the client
-    print ('Closing Connection')
-    c.close()
+#     print ('Closing Connection')
+#     c.close()
 
 ###------End of main()----------
 
-# Message in format 1,2,3,4,5
+# Message in format "1,2,3,4,5"
+
+# Message modified "CT,PR,3F"
+# Message modified "PG,1,2,3,4,5
