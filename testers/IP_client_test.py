@@ -4,6 +4,7 @@
 
 # Import socket module 
 import socket
+from time import sleep
 
 # Create a socket object 
 s = socket.socket()
@@ -12,13 +13,20 @@ s = socket.socket()
 port = 12345
 
 # connect to the server on local computer 
-s.connect(('192.168.0.81', port)) # remember to change
+s.connect(('pulsegenerator.local', port)) # remember to change
 #192.168.0.81 - pulsegenerator
 
 # receive data from the server 
 print (s.recv(1024))
-# Notes: client would send message to be parsed in testing
-s.send('1,2,3,4,5')
 
-# close the connection 
+# Notes: client would send message to be parsed in testing
+s.send('CT,PR,63')
+sleep(2)
+
+s.send('CT,PL,63')
+sleep(2)
+
+s.send('CT,STOP,0')
+
+# close the connection
 s.close()
