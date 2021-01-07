@@ -35,6 +35,7 @@ def pelcod(camera_options, camera_speed): # using decimal instead of hex
     pan_speed = 0
     tilt_speed = 0
 
+
     if camera_options == 'PR':
       pan_speed = camera_speed
       command2 = 2
@@ -161,7 +162,7 @@ if __name__ == "__main__":
     c.send('Thank you for connecting')
 
     # Notes: Will do the task after receiving message
-    data = c.recv(1024)
+    package = c.recv(1024)
     print ('Receiving: {}, {}'.format(data,type(data)))
 
     data = package.split(',')
@@ -170,17 +171,13 @@ if __name__ == "__main__":
       pelcod(data[1],int(data[2]))
       if data[1] == 'STOP':
         print ('Closing Connection')
-        c.close()
+	c.close()
 
     elif data[0] == 'PG':
       wave_creation(data[1],data[2],data[3],data[4],data[5])
       print ('Closing Connection')
       c.close()
 
-    else:
-      c.send('Invalid data parameters!')
-      print ('invalid data')
-      c.close()
 #------------------------------------------------------
 
     # Close the connection with the client
