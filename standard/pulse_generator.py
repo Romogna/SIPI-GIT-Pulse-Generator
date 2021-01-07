@@ -5,6 +5,8 @@ import serial
 import pigpio
 
 data = [] # holds parsed information
+package = None # for holding message data till parsed
+
 
 GPIO=4 # pin selected for pwg
 exposure_time = [] # stores a list of exposure times
@@ -147,12 +149,12 @@ if __name__ == "__main__":
   print ('socket binded to {}'.format(port))
 
   # put the socket into listening mode
-  s.listen(5)
+  s.listen(1)
   print ('socket is listening')
 
   # a forever loop until we interrupt it or
   # an error occurs
-  while True:
+  try:
 
     # Establish connection with client.
     c, addr = s.accept()
@@ -161,22 +163,26 @@ if __name__ == "__main__":
     # send a thank you message to the client.
     c.send('Thank you for connecting')
 
-    # Notes: Will do the task after receiving message
-    package = c.recv(1024)
-    print ('Receiving: {}, {}'.format(data,type(data)))
+    while True:
 
-    data = package.split(',')
+      package = c.recv(1024)
 
-    if data[0] == 'CT':
-      pelcod(data[1],int(data[2]))
-      if data[1] == 'STOP':
-        print ('Closing Connection')
-	c.close()
+      data = package.split(',')
 
-    elif data[0] == 'PG':
-      wave_creation(data[1],data[2],data[3],data[4],data[5])
-      print ('Closing Connection')
-      c.close()
+      print ('Receiving: {}, {}'.format(data,type(data)))
+
+      if data[0] == 'CT':
+        pelcod(data[1],int(data[2]))
+
+      elif data[0] == 'PG':
+        wave_creation(data[1],data[2],data[3],data[4],data[5])
+
+      else:
+        break
+
+  finally:
+    print ('Closing connection')
+    c.close
 
 #------------------------------------------------------
 
