@@ -1,9 +1,44 @@
 
 import gps
+import bluetooth
+
+import os
+import sys
+
 
 # Listen on port 2947 (gpsd) of localhost
 session = gps.gps("localhost", "2947")
 session.stream(gps.WATCH_ENABLE | gps.WATCH_NEWSTYLE)
+
+
+
+def main(argv):
+
+	if len(argv) < 2:
+		print_help()
+		exit(1)
+
+	server_bt_port = int(argv[1])
+
+	server_sock = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
+
+	server_bt_address = '', server_bt_port
+
+	server_sock.bind(server_bt_address)
+	server_sock.listen(1)
+
+	while True:
+
+		client_sock,address = server_sock.accept()
+		print('Accepted connection from ', address)
+
+		data = client_sock.recv(1024)
+		print('Received: ' + data.decode('utf-8'))
+
+		client_sock.close()
+
+	server_sock.close()
+
 
 while True:
 
@@ -43,3 +78,8 @@ while True:
     except StopIteration:
         session = None
         print("GPSD has terminated")
+
+
+if _name_ == '_main_':
+
+    main(sys.argv)

@@ -5,25 +5,6 @@ import gps
 import bluetooth
 
 
-def scan():
-
-    print("Scanning for bluetooth devices:")
-    devices = bluetooth.discover_devices(lookup_names = True, lookup_class = True)
-    number_of_devices = len(devices)
-    print(number_of_devices,"devices found")
-
-    for addr, name, device_class in devices:
-
-        print("\n")
-        print("Device:")
-        print("Device Name: %s" % (name))
-        print("Device MAC Address: %s" % (addr))
-        print("Device Class: %s" % (device_class))
-        print("\n")
-
-    return()
-
-
 def scan_services():
 
     print("Scanning for bluetooth devices: ")
@@ -106,6 +87,7 @@ def bluetooth_connect():
     server_socket.bind(("",port))
     server_socket.listen(1)
     client_socket,address = server_socket.accept()
+
     print("Accepted connection from ",address)
 
 
@@ -136,6 +118,8 @@ def browse_menu():
         scan_services()
     elif answer == '3' :
         gps_data()
+    elif answer == '4' :
+        bluetooth_connect()
     else:
         print("Error in choice!")
 

@@ -6,13 +6,21 @@ import sys
 
 # gps_data
 import gps
-
+import time
 
 def gps_data():
+
+    gps_time = None
+    gps_speed = None
+    gps_climb = None
+    gps_alt = None
+    gps_lat = None
+    gps_lon = None
 
     # Listen on port 2947 (gpsd) of localhost
     session = gps.gps("localhost", "2947")
     session.stream(gps.WATCH_ENABLE | gps.WATCH_NEWSTYLE)
+
 
     while True:
         try:
@@ -24,53 +32,43 @@ def gps_data():
             if report['class'] == 'TPV':
 
                 if hasattr(report, 'time'):
-                     print("\n------------------------------------------------\n")
-                     print(f'Time: {report.time} \n')
+                     #print("\n------------------------------------------------\n")
+                     #print(f'Time: {report.time} \n')
+                     gps_time = str(report.time)
 
                 if hasattr(report, 'speed'):
-                     print(f'Speed: {report.speed * gps.MPS_TO_KPH} \n')
+                     #print(f'Speed: {report.speed * gps.MPS_TO_KPH} \n')
+                     gps_speed = str(report.speed * gps.MPS_TO_KPH)
 
                 if hasattr(report, 'climb'):
-                     print(f'Climb: {report.climb} \n')
+                     #print(f'Climb: {report.climb} \n')
+                     gps_climb = str(report.climb)
 
                 if hasattr(report, 'alt'):
-                      print(f'Altitude: {report.alt} \n')
+                     #print(f'Altitude: {report.alt} \n')
+                     gps_alt = str(report.alt)
 
                 if hasattr(report, 'lat'):
-                     print(f'Latitude: {report.lat} \n')
+                     #print(f'Latitude: {report.lat} \n')
+                     gps_lat = str(report.lat)
 
                 if hasattr(report, 'lon'):
-                     print(f'Longitude: {report.lon} \n')
+                     #print(f'Longitude: {report.lon} \n')
+                     gps_lon = str(report.lon)
 
 
-        except KeyError:
-            pass
-        except KeyboardInterrupt:
-            quit()
+                # Section to create and send data
+                package = gps_time + ',' + gps_speed + ',' + gps_alt + ',' + gps_lat + ',' + gps_lon + '\n'
+                #print ('1 -> {}, {}'.format(package,type(package)))
+                #package.encode()
+                print ('2 -> {}, {}'.format(package.encode(),type(package.encode())))
+                c.send(package.encode())
+            time.sleep(0.5)
+
         except StopIteration:
             session = None
             print("GPSD has terminated")
 
-
-def browse_menu():
-
-    print("\n")
-    print("Networking Test    - (1)")
-    print("Bluetooth Services - (2)")
-    print("GPS Information    - (3)")
-    print("Bluetooth Connect  - (4)")
-    answer = input("\nPlease select the number to test the function: \n\t- ")
-
-    if answer == '1' :
-        print ('Networking placeholder.')
-    elif answer == '2' :
-        scan_services()
-    elif answer == '3' :
-        gps_data()
-    elif answer == '4' :
-        bluetooth_connect()
-    else:
-        print("Error in choice!")
 
 if __name__ == "__main__":
 
@@ -82,7 +80,7 @@ if __name__ == "__main__":
 
     # reserve a port on your computer in our
     # case it is 12345 but it can be anything
-    port = 12345
+    port = 9010
 
     # Next bind to the port
     # we have not typed any ip in the ip field
@@ -105,14 +103,19 @@ if __name__ == "__main__":
         print ('Got connection from {}'.format(addr))
 
         # send a thank you message to the client.
-        c.send('Thank you for connecting')
+        #message = 'Thank you for connecting'
+
+        #byt = message.encode()
+        #c.send(byt)
 
         while True:
 
             # needs to periodically send out gps/lux data to client
-            package = c.recv(1024)
+            gps_data()
 
-            print ('Receiving: {}, {}'.format(package,type(package)))
+            #package = c.recv(1024)
+            #package.decode()
+            #print ('Receiving: {}, {}'.format(package,type(package)))
 
     finally:
         print ('Closing connection')
