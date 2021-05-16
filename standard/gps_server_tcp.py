@@ -1,4 +1,7 @@
-#!/usr/bin/python3
+#!/usr/bin/python
+
+# arduino
+import serial
 
 # networking
 import socket
@@ -8,22 +11,21 @@ import sys
 import gps
 import time
 
-def gps_data():
 
-    gps_time = None
-    gps_speed = None
-    gps_climb = None
-    gps_alt = None
-    gps_lat = None
-    gps_lon = None
+
+def data_packet():
+
 
     # Listen on port 2947 (gpsd) of localhost
     session = gps.gps("localhost", "2947")
     session.stream(gps.WATCH_ENABLE | gps.WATCH_NEWSTYLE)
 
 
-    while True:
-        try:
+    try:
+
+            #if ser.in_waiting > 0:
+                #lux_value = ser.readline().decode('utf-8').rstrip()
+
 
             report = session.next()
             # Wait for a 'TPV' report and display the current time
@@ -56,23 +58,47 @@ def gps_data():
                      #print(f'Longitude: {report.lon} \n')
                      gps_lon = str(report.lon)
 
+                if hasattr(report, 'track'):
+                     #print(f'Longitude: {report.lon} \n')
+
+
+                     gps_head = str(report.track)
+
 
                 # Section to create and send data
-                package = gps_time + ',' + gps_speed + ',' + gps_alt + ',' + gps_lat + ',' + gps_lon + '\n'
+                package = gps_speed + ',' + gps_alt + ',' + gps_lat + ',' + gps_lon + ',' + gps_head + ','+ lux_value + '\n'
                 #print ('1 -> {}, {}'.format(package,type(package)))
                 #package.encode()
-                print ('2 -> {}, {}'.format(package.encode(),type(package.encode())))
+                #print ('2 -> {}, {}'.format(package.encode(),type(package.encode())))
                 c.send(package.encode())
+
             time.sleep(0.5)
 
-        except StopIteration:
+    except StopIteration:
             session = None
             print("GPSD has terminated")
 
+def override_on():
+    #used to turn lights on
+    ser.write('on'.encode())
+
+def override_off():
+    #used to turn lights off
+    ser.write('off'.encode())
+
+def override_auto():
+    #used to control lights with lux
+    ser.write('auto'.encode())
 
 if __name__ == "__main__":
 
-    #browse_menu()
+    gps_time = None
+    gps_speed = None
+    gps_climb = None
+    gps_alt = None
+    gps_lat = None
+    gps_lon = None
+    lux_value = None
 
     # next create a socket object
     s = socket.socket()
@@ -94,6 +120,9 @@ if __name__ == "__main__":
     s.listen(1)
     print ('socket is listening')
 
+    #ser = serial.Serial('/dev/ttyACM0', 9600, timeout=1)
+    #ser.flush()
+
     # a forever loop until we interrupt it or
     # an error occurs
     try:
@@ -111,11 +140,19 @@ if __name__ == "__main__":
         while True:
 
             # needs to periodically send out gps/lux data to client
-            gps_data()
+            data_packet()
 
-            #package = c.recv(1024)
-            #package.decode()
-            #print ('Receiving: {}, {}'.format(package,type(package)))
+            package = c.recv(1024)
+            package.decode()
+
+            print ('Receiving: {}, {}'.format(package,type(package)))
+
+            if package == 'LightsOff':
+                override_off()
+            elif package == 'LightsOn':
+                override_on()
+            elif package == 'LightsAuto':
+                override_auto()
 
     finally:
         print ('Closing connection')
