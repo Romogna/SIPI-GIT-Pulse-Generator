@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # arduino
 import serial
@@ -11,20 +11,23 @@ import sys
 import gps
 import time
 
+# multi-threading
+import threading
 
 
-def data_packet():
-
+def send_data_packet():
 
     # Listen on port 2947 (gpsd) of localhost
     session = gps.gps("localhost", "2947")
     session.stream(gps.WATCH_ENABLE | gps.WATCH_NEWSTYLE)
 
+    while True:
+        try:
 
-    try:
+            if ser.in_waiting > 0:
+                lux_message = ser.readline().decode('utf-8').rstrip()
+                lux_data = lux_message.split(',')
 
-            #if ser.in_waiting > 0:
-                #lux_value = ser.readline().decode('utf-8').rstrip()
 
 
             report = session.next()
@@ -60,21 +63,19 @@ def data_packet():
 
                 if hasattr(report, 'track'):
                      #print(f'Longitude: {report.lon} \n')
-
-
                      gps_head = str(report.track)
 
 
                 # Section to create and send data
-                package = gps_speed + ',' + gps_alt + ',' + gps_lat + ',' + gps_lon + ',' + gps_head + ','+ lux_value + '\n'
-                #print ('1 -> {}, {}'.format(package,type(package)))
+                package = gps_speed + ',' + gps_alt + ',' + gps_lat + ',' + gps_lon + ',' + gps_head + ','+ lux_data[0] + ',' + lux_data[1] '\n'
+                print ('1 -> {}, {}'.format(package,type(package)))
                 #package.encode()
                 #print ('2 -> {}, {}'.format(package.encode(),type(package.encode())))
                 c.send(package.encode())
 
             time.sleep(0.5)
 
-    except StopIteration:
+        except StopIteration:
             session = None
             print("GPSD has terminated")
 
@@ -90,6 +91,22 @@ def override_auto():
     #used to control lights with lux
     ser.write('auto'.encode())
 
+def receiver():
+    # Receiver on a seperate thread
+    while True:
+        package = c.recv(1024)
+        package.decode()
+
+        print ('Receiving: {}, {}'.format(package,type(package)))
+
+        if package == 'LightsOff':
+            override_off()
+        elif package == 'LightsOn':
+            override_on()
+        elif package == 'LightsAuto':
+            override_auto()
+
+
 if __name__ == "__main__":
 
     gps_time = None
@@ -98,7 +115,11 @@ if __name__ == "__main__":
     gps_alt = None
     gps_lat = None
     gps_lon = None
-    lux_value = None
+    lux_data = []
+
+    # serial connection to the arduino for Lux
+    ser = serial.Serial('/dev/ttyUSB0', 9600, timeout=1)
+    ser.flush()
 
     # next create a socket object
     s = socket.socket()
@@ -120,8 +141,6 @@ if __name__ == "__main__":
     s.listen(1)
     print ('socket is listening')
 
-    #ser = serial.Serial('/dev/ttyACM0', 9600, timeout=1)
-    #ser.flush()
 
     # a forever loop until we interrupt it or
     # an error occurs
@@ -131,28 +150,19 @@ if __name__ == "__main__":
         c, addr = s.accept()
         print ('Got connection from {}'.format(addr))
 
-        # send a thank you message to the client.
-        #message = 'Thank you for connecting'
+        # creates and starts receiver on seperate thread
+        r = threading.Thread(target=receiver)
+        r.start()
 
-        #byt = message.encode()
-        #c.send(byt)
+        t = threading.Thread(target=send_data_packet)
+        t.start()
 
-        while True:
+        #while True:
 
             # needs to periodically send out gps/lux data to client
-            data_packet()
+            #send_data_packet()
 
-            package = c.recv(1024)
-            package.decode()
 
-            print ('Receiving: {}, {}'.format(package,type(package)))
-
-            if package == 'LightsOff':
-                override_off()
-            elif package == 'LightsOn':
-                override_on()
-            elif package == 'LightsAuto':
-                override_auto()
 
     finally:
         print ('Closing connection')
