@@ -26,7 +26,7 @@ def send_data_packet():
 
             if ser.in_waiting > 0:
                 lux_message = ser.readline().decode('utf-8').rstrip()
-                lux_data = lux_message.split(',')
+                #lux_data = lux_message.split(',')
 
 
 
@@ -67,7 +67,7 @@ def send_data_packet():
 
 
                 # Section to create and send data
-                package = gps_speed + ',' + gps_alt + ',' + gps_lat + ',' + gps_lon + ',' + gps_head + ','+ lux_data[0] + ',' + lux_data[1] '\n'
+                package = gps_speed + ',' + gps_alt + ',' + gps_lat + ',' + gps_lon + ',' + gps_head + ','+ lux_message + '\n'
                 print ('1 -> {}, {}'.format(package,type(package)))
                 #package.encode()
                 #print ('2 -> {}, {}'.format(package.encode(),type(package.encode())))
@@ -154,13 +154,13 @@ if __name__ == "__main__":
         r = threading.Thread(target=receiver)
         r.start()
 
-        t = threading.Thread(target=send_data_packet)
-        t.start()
+        #t = threading.Thread(target=send_data_packet)
+        #t.start()
 
-        #while True:
+        while True:
 
             # needs to periodically send out gps/lux data to client
-            #send_data_packet()
+            send_data_packet()
 
 
 
