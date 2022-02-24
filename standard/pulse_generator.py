@@ -4,9 +4,6 @@ import time
 import serial
 import pigpio
 
-# gps_data
-import gps
-
 
 data = [] # holds parsed information
 package = None # for holding message data till parsed
@@ -25,41 +22,6 @@ ser = serial.Serial(
 #       stopbits=serial.STOPBITS_TWO,
 #       bytesize=serial.SEVENBITS
 )
-
-def gps_data():
-
-    # Listen on port 2947 (gpsd) of localhost
-    session = gps.gps("localhost", "2947")
-    session.stream(gps.WATCH_ENABLE | gps.WATCH_NEWSTYLE)
-
-    while True:
-        try:
-
-            report = session.next()
-            if report['class'] == 'TPV':
-                if hasattr(report, 'time'):
-                     print("\n------------------------------------------------\n")
-                     print(f'Time: {report.time} \n')
-
-                if hasattr(report, 'alt'):
-                     print(f'Altitude: {report.alt} \n')
-
-                if hasattr(report, 'lat'):
-                     print(f'Latitude: {report.lat} \n')
-
-                if hasattr(report, 'lon'):
-                     print(f'Longitude: {report.lon} \n')
-
-
-            
-
-        except KeyError:
-            pass
-        except KeyboardInterrupt:
-            quit()
-        except StopIteration:
-            session = None
-            print("GPSD has terminated")
 
 
 def pelcod(camera_options, camera_speed): # using decimal instead of hex
@@ -102,20 +64,15 @@ def pelcod(camera_options, camera_speed): # using decimal instead of hex
     checksum = (camera + command1 + command2 + pan_speed + tilt_speed) % 256
 
     #print ('Command Sent: {},{},{},{},{},{},{}'.format(sync ,camera, command1, command2, pan_speed, tilt_speed, checksum$
-    #return [camera, command1, command2, pan_speed, tilt_speed, checksum]
-
     command = [sync, camera, command1, command2, pan_speed, tilt_speed, checksum]
-
-    #print (bytearray(command))
-
     ser.write(command)
 
 #----------------end of pelcod-----------------#
 
 def wave_creation(image_count, initial_exposure, interval_param, sequence_param, sequence_steps):
 
+  # Old Code Segment {
   #wave_param = data.split(',')
-
   #image_count = input("How many exposures will you be taking? \n")
   #image_count = int(wave_param[0])
   #intial_exposure = input("Enter in the intial exposure time: ")
@@ -126,6 +83,7 @@ def wave_creation(image_count, initial_exposure, interval_param, sequence_param,
   #sequence_param = int(wave_param[3]) # 1 is geometric, 0 is arithmetic
   #sequence_steps = input ("What is the common difference/ratio? \n")
   #sequence_steps = int(wave_param[4])
+  # }
 
   compile = 1
 
@@ -134,7 +92,7 @@ def wave_creation(image_count, initial_exposure, interval_param, sequence_param,
     if sequence_param == 0: # will add sequence exposures to list arithmetic
       exposure_time.append(initial_exposure + (sequence_steps*compile))
     elif sequence_param == 1:  # will add sequence exposures to list geometric
-      exposure_time.append(initial_exposure * (sequence_steps**compile)) # <-needs adjustments and testing
+      exposure_time.append(initial_exposure * (sequence_steps*compile)) # <-needs adjustments and testing
     else:
       print ('Invalid option! Please try again.')
       exit()
@@ -189,7 +147,7 @@ if __name__ == "__main__":
   print ('socket binded to {}'.format(port))
 
   # put the socket into listening mode
-  s.listen(1)
+  s.listen(1) # number represents amount of connections
   print ('socket is listening')
 
   # a forever loop until we interrupt it or
@@ -205,7 +163,10 @@ if __name__ == "__main__":
 
     while True:
 
+      # Puts message received into package to be parsed
       package = c.recv(1024)
+      # send confirmation of package to client
+      #c.send('Received: {}'.format(package))
 
       data = package.split(',')
 
@@ -223,18 +184,11 @@ if __name__ == "__main__":
   #except KeyboardInterrupt:
     #quit()
 
-
   finally:
+    # Close the connection with the client
     print ('Closing connection')
     c.close
 
-
-
-#------------------------------------------------------
-
-    # Close the connection with the client
-#     print ('Closing Connection')
-#     c.close()
 
 ###------End of main()----------
 
