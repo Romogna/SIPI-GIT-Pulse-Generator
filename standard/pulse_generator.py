@@ -9,19 +9,25 @@ data = [] # holds parsed information
 package = None # for holding message data till parsed
 
 
-GPIO=4 # pin selected for pwg
+GPIO=18 # pin selected for pwg
 exposure_time = [] # stores a list of exposure times
 wave_param = [] # holds data from the message
 square = []  # list to store the waveform parameters
 
+#try:
 # configure the serial connections (the parameters differs on the device you are connecting to)
+print ('Attempting serial connection')
 ser = serial.Serial(
-        port='/dev/ttyUSB0',
-        baudrate=9600
+      port='/dev/ttyUSB0',
+      baudrate=9600
 #       parity=serial.PARITY_ODD,
 #       stopbits=serial.STOPBITS_TWO,
 #       bytesize=serial.SEVENBITS
 )
+
+#except SerialException:
+#    print ('Serial Exception:')
+#    print ('PTZ Control Serial connection missing!')
 
 
 def pelcod(camera_options, camera_speed): # using decimal instead of hex
@@ -88,23 +94,26 @@ def wave_creation(image_count, initial_exposure, interval_param, sequence_param,
   compile = 1
 
   # loop to populate the exposure time list
-  while (compile < image_count):
+  while (compile < image_count+1):
     if sequence_param == 0: # will add sequence exposures to list arithmetic
       exposure_time.append(initial_exposure + (sequence_steps*compile))
     elif sequence_param == 1:  # will add sequence exposures to list geometric
       exposure_time.append(initial_exposure * (sequence_steps*compile)) # <-needs adjustments and testing
     else:
-      print ('Invalid option! Please try again.')
-      exit()
-
+      c.send('Invalid option! Sequence {} is incorrect.'.format(sequence_param))
+      print ('Invalid option! Sequence {} is incorrect.'.format(sequence_param))
+      return ()
+    #print ('Configured Wave Characteristics: compile {}'.format(compile))
     compile = compile + 1 # increment until we have enough exposures
 
+
+  print ('Populating Wave')
   for i in range(0, image_count-1): # populates the square wave with parameters
   # pulses                     ON       OFF      MICROS
     square.append(pigpio.pulse(1<<GPIO, 0,       exposure_time[i])) # varying exposures
     square.append(pigpio.pulse(0,       1<<GPIO, interval_param)) # interval between exposures
 
-
+  print ('Connecting to GPIO')
   pi = pigpio.pi() # connect to local Pi
   pi.set_mode(GPIO, pigpio.OUTPUT) # turns GPIO pin to output
   pi.wave_add_generic(square) # adds a list(square) of pulses to current waveform
@@ -112,11 +121,9 @@ def wave_creation(image_count, initial_exposure, interval_param, sequence_param,
 
   if wid >= 0:
      pi.wave_send_once(wid) # generates the wave pulse
-     print ('Producing wave now!')
-     print (exposure_time)
+     print ('Producing wave: {}'.format(exposure_time))
 
-     c.send('Wave produced') # send the client the wave parameters
-     time.sleep(10)          # used to pause time before stopping
+     time.sleep(5)          # used to pause time before stopping
      pi.wave_tx_stop()        # used to stop the pulse
      pi.wave_delete(wid)       # used to delete the current waveform
 
@@ -144,11 +151,11 @@ if __name__ == "__main__":
   # this makes the server listen to requests
   # coming from other computers on the network
   s.bind(('', port))
-  print ('socket binded to {}'.format(port))
+  print ('Socket binded to {}'.format(port))
 
   # put the socket into listening mode
   s.listen(1) # number represents amount of connections
-  print ('socket is listening')
+  print ('Socket is listening')
 
   # a forever loop until we interrupt it or
   # an error occurs
@@ -176,11 +183,12 @@ if __name__ == "__main__":
         pelcod(data[1],int(data[2]))
 
       elif data[0] == 'PG':
-        wave_creation(data[1],data[2],data[3],data[4],data[5])
+        wave_creation( int(data[1]), int(data[2]), int(data[3]), int(data[4]), int(data[5]))
 
       else:
         break
 
+      print ('Ready for next Trigger')
   #except KeyboardInterrupt:
     #quit()
 

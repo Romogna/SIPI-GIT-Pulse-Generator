@@ -23,11 +23,11 @@ compile = 0
 
 # loop to populate the exposure time list
 while (compile < image_count):
-  if compile = 0:  # intial exposure is at the front of the list
+  if compile == 0:  # intial exposure is at the front of the list
     exposure_time.append(intial_exposure)
-  else if sequence_param = "arithmetic": # will add sequence exposures to list
+  elif sequence_param == "arithmetic": # will add sequence exposures to list
     exposure_time.append(intial_exposure + (sequence_steps*compile))
-  else if sequence_param = "geometric":  # will add sequence exposures to list
+  elif sequence_param == "geometric":  # will add sequence exposures to list
     exposure_time.append(intial_exposure * (sequence_steps**compile))
 
   compile = compile + 1 # increment until we have enough exposures
