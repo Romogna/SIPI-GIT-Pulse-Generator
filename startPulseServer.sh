@@ -7,7 +7,7 @@ CurrentDir=$PWD
 echo "Starting from $CurrentDir:"
 sleep 1
 
-echo " - PiCamera Webserver"
+#echo " - PiCamera Webserver"
 #python3 $CurrentDir/standard/cameraServer.py &
 #sleep 1 &
 

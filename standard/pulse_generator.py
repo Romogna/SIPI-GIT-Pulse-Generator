@@ -98,7 +98,7 @@ def wave_creation(image_count, initial_exposure, interval_param, sequence_param,
     if sequence_param == 0: # will add sequence exposures to list arithmetic
       exposure_time.append(initial_exposure + (sequence_steps*compile))
     elif sequence_param == 1:  # will add sequence exposures to list geometric
-      exposure_time.append(initial_exposure * (sequence_steps*compile)) # <-needs adjustments and testing
+      exposure_time.append(initial_exposure + (sequence_steps*(compile**3))) # <-needs adjustments and testing
     else:
       c.send('Invalid option! Sequence {} is incorrect.'.format(sequence_param))
       print ('Invalid option! Sequence {} is incorrect.'.format(sequence_param))
@@ -108,7 +108,7 @@ def wave_creation(image_count, initial_exposure, interval_param, sequence_param,
 
 
   print ('Populating Wave')
-  for i in range(0, image_count-1): # populates the square wave with parameters
+  for i in range(0, image_count): # populates the square wave with parameters
   # pulses                     ON       OFF      MICROS
     square.append(pigpio.pulse(1<<GPIO, 0,       exposure_time[i])) # varying exposures
     square.append(pigpio.pulse(0,       1<<GPIO, interval_param)) # interval between exposures
